@@ -1,4 +1,7 @@
 import os
+import gcsfs
+import json
+import pandas as pd
 
 from airflow import models
 from airflow.providers.google.cloud.operators.bigquery import (
@@ -19,8 +22,26 @@ dag = models.DAG(
     tags=['gcs_to_bigquery'],
 )
 
+def users_converter():
+    output_data = []
+    
+    gcs_file_system = gcsfs.GCSFileSystem(project="sirapob-bluepi-de-exam", token="cloud")
+    gcs_json_path = "gs://airflow-postgres/users"
+    with gcs_file_system.open(gcs_json_path) as f:
+        gcs_data = json.loads(json.dumps(f.read().decode('utf-8')))
+        print(gcs_data)
+        output_data.append(gcs_data)
+        
+    print(output_data)
+
 create_users_dataset = BigQueryCreateEmptyDatasetOperator(
     task_id='users_dataset', dataset_id=DATASET_NAME, dag=dag
+)
+
+convert_input_file = PythonOperator(
+    task_id='convert_users',
+    python_callable=users_converter,
+    dag=dag
 )
 
 # [START howto_operator_gcs_to_bigquery]
@@ -45,4 +66,4 @@ delete_users_dataset = BigQueryDeleteDatasetOperator(
     task_id='delete_users_dataset', dataset_id=DATASET_NAME, delete_contents=True, dag=dag
 )
 
-create_users_dataset >> load_users >> delete_users_dataset
+create_users_dataset >> convert_input_file >> load_users >> delete_users_dataset
