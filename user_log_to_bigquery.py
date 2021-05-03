@@ -1,9 +1,15 @@
 import os
+import gcsfs
+import json
+import csv
+import datetime
+import pandas as pd
+
+from google.cloud import storage
 
 from airflow import models
 from airflow.providers.google.cloud.operators.bigquery import (
-    BigQueryCreateEmptyDatasetOperator,
-    BigQueryDeleteDatasetOperator,
+    BigQueryCreateEmptyDatasetOperator
 )
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.utils.dates import days_ago
@@ -19,8 +25,37 @@ dag = models.DAG(
     tags=['gcs_to_bigquery'],
 )
 
+def user_log_converter():
+    json_gcs = []
+    
+    gcs_file_system = gcsfs.GCSFileSystem(project="sirapob-bluepi-de-exam", token="cloud")
+    gcs_json_path = "gs://airflow-postgres/user_log"
+    with gcs_file_system.open(gcs_json_path) as f:
+        gcs_string_data = json.loads(json.dumps(f.read().decode('utf-8')))
+        gcs = gcs_string_data.splitlines()
+        for g in gcs:
+            gcs = json.loads(g)
+            epoch_created_at = float(gcs['created_at'])
+            epoch_updated_at = float(gcs['updated_at'])
+            gcs['created_at'] = datetime.datetime.fromtimestamp(epoch_created_at).strftime("%Y-%m-%d %H:%M:%S")
+            gcs['updated_at'] = datetime.datetime.fromtimestamp(epoch_updated_at).strftime("%Y-%m-%d %H:%M:%S")
+            gcs['status'] = True if gcs['status'] == 1 else False
+            json_gcs.append(gcs)
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket("airflow-postgres")
+    blob = bucket.blob("user_log.csv")
+    df = pd.DataFrame(data=json_gcs).to_csv(sep=",", header=False, index=False, quotechar='"', quoting=csv.QUOTE_ALL, encoding='utf-8')
+    blob.upload_from_string(data=df)
+
 create_user_log_dataset = BigQueryCreateEmptyDatasetOperator(
     task_id='user_log_dataset', dataset_id=DATASET_NAME, dag=dag
+)
+
+convert_input_file = PythonOperator(
+    task_id='convert_user_log',
+    python_callable=user_log_converter,
+    dag=dag
 )
 
 # [START howto_operator_gcs_to_bigquery]
@@ -30,20 +65,17 @@ load_user_log = GCSToBigQueryOperator(
     source_objects=['user_log.csv'],
     destination_project_dataset_table=f"{DATASET_NAME}.{TABLE_NAME}",
     schema_fields=[
-        {'name': 'created_at', 'type': 'DATE', 'mode': 'REQUIRED'},
-        {'name': 'updated_at', 'type': 'DATE', 'mode': 'REQUIRED'},
-        {'name': 'id', 'type': 'STRING', 'mode': 'REQUIRED'},
-        {'name': 'user_id', 'type': 'STRING', 'mode': 'REQUIRED'},
         {'name': 'action', 'type': 'STRING', 'mode': 'REQUIRED'},
+        {'name': 'created_at', 'type': 'DATETIME', 'mode': 'REQUIRED'},
+        {'name': 'id', 'type': 'STRING', 'mode': 'REQUIRED'},
         {'name': 'success', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
+        {'name': 'updated_at', 'type': 'DATETIME', 'mode': 'REQUIRED'},
+        {'name': 'user_id', 'type': 'STRING', 'mode': 'REQUIRED'}
     ],
     write_disposition='WRITE_TRUNCATE',
+    source_format='CSV',
+    encoding='UTF-8',
     dag=dag,
 )
-# [END howto_operator_gcs_to_bigquery]
 
-delete_user_log_dataset = BigQueryDeleteDatasetOperator(
-    task_id='delete_user_log_dataset', dataset_id=DATASET_NAME, delete_contents=True, dag=dag
-)
-
-create_user_log_dataset >> load_user_log >> delete_user_log_dataset
+create_user_log_dataset >> convert_input_file >> load_user_log
