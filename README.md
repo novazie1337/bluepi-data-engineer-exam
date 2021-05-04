@@ -15,6 +15,9 @@ This repository contains code and documentation for use with
 * `Ubuntu 20.04 LTS`
 * `Systemd services` — Automatic startup
 
+## Project Architecture
+![image](https://user-images.githubusercontent.com/30399159/117000335-201dc700-ad0b-11eb-96fd-f2050c0ab7c9.png)
+
 ## Project's URL
 * [Apache Airflow](http://35.213.169.173:8080/home) — Username: `bluepi`, Password: `password`
 * [Jupyter Notebook](https://oqw2nil25vfwtchkittgjsw6ii-dot-asia-southeast1.dataproc.googleusercontent.com/jupyter/lab/)
