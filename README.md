@@ -11,7 +11,7 @@ This repository contains code and documentation for use with
 
 ### Apache Airflow Instance Modules
 * `Apache Airflow` — version 1.10.15
-* `Python 3.7.10` — The latest version that Airflow works with.
+* `Python 3.7.10`
 * `Ubuntu 20.04 LTS`
 * `Systemd services` — Automatic startup
 
