@@ -4,6 +4,7 @@ import json
 import csv
 import time
 import pandas as pd
+import decimal
 
 from google.cloud import storage
 
@@ -35,8 +36,8 @@ def user_log_converter():
         gcs = gcs_string_data.splitlines()
         for g in gcs:
             gcs = json.loads(g)
-            gcs['created_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(gcs['created_at'])))
-            gcs['updated_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(gcs['updated_at'])))
+            gcs['created_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(decimal.Decimal(gcs['created_at'])))
+            gcs['updated_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(decimal.Decimal(gcs['updated_at'])))
             gcs['status'] = True if gcs['status'] == 1 else False
             json_gcs.append(gcs)
 
@@ -56,7 +57,6 @@ convert_input_file = PythonOperator(
     dag=dag
 )
 
-# [START howto_operator_gcs_to_bigquery]
 load_user_log = GCSToBigQueryOperator(
     task_id='gcs_to_bigquery_user_log',
     bucket='airflow-postgres',
