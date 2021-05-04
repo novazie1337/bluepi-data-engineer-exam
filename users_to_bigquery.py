@@ -2,9 +2,8 @@ import os
 import gcsfs
 import json
 import csv
-import time
 import pandas as pd
-import decimal
+import datetime as dt
 
 from google.cloud import storage
 
@@ -35,9 +34,9 @@ def users_converter():
         gcs_string_data = json.loads(json.dumps(f.read().decode('utf-8')))
         gcs = gcs_string_data.splitlines()
         for g in gcs:
-            gcs = json.loads(g)
-            gcs['created_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(decimal.Decimal(gcs['created_at'])))
-            gcs['updated_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(decimal.Decimal(gcs['updated_at'])))
+            gcs = json.loads(g) 
+            gcs['created_at'] = dt.datetime.fromtimestamp(gcs['created_at']) + dt.timedelta(hours=7)
+            gcs['updated_at'] = dt.datetime.fromtimestamp(gcs['updated_at']) + dt.timedelta(hours=7)
             json_gcs.append(gcs)
 
     storage_client = storage.Client()

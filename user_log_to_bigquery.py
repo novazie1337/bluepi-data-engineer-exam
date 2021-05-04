@@ -2,9 +2,8 @@ import os
 import gcsfs
 import json
 import csv
-import time
 import pandas as pd
-import decimal
+import datetime as dt
 
 from google.cloud import storage
 
@@ -36,8 +35,8 @@ def user_log_converter():
         gcs = gcs_string_data.splitlines()
         for g in gcs:
             gcs = json.loads(g)
-            gcs['created_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(decimal.Decimal(gcs['created_at'])))
-            gcs['updated_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(decimal.Decimal(gcs['updated_at'])))
+            gcs['created_at'] = dt.datetime.fromtimestamp(gcs['created_at']) + dt.timedelta(hours=7)
+            gcs['updated_at'] = dt.datetime.fromtimestamp(gcs['updated_at']) + dt.timedelta(hours=7)
             gcs['status'] = True if gcs['status'] == 1 else False
             json_gcs.append(gcs)
 
