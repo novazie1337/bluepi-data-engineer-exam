@@ -16,7 +16,7 @@ This repository contains code and documentation for use with
 * `Systemd services` — Automatic startup
 
 ## Project's URL
-* [Apache Airflow](http://35.213.169.173:8080/home)
+* [Apache Airflow](http://35.213.169.173:8080/home) — Username: `Jon`, Password: `password`
 * [Jupyter Notebook](https://oqw2nil25vfwtchkittgjsw6ii-dot-asia-southeast1.dataproc.googleusercontent.com/jupyter/lab/)
 
 ## For more information
