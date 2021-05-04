@@ -2,7 +2,7 @@ import os
 import gcsfs
 import json
 import csv
-import datetime
+import time
 import pandas as pd
 
 from google.cloud import storage
@@ -35,10 +35,8 @@ def users_converter():
         gcs = gcs_string_data.splitlines()
         for g in gcs:
             gcs = json.loads(g)
-            epoch_created_at = float(gcs['created_at'])
-            epoch_updated_at = float(gcs['updated_at'])
-            gcs['created_at'] = datetime.datetime.fromtimestamp(epoch_created_at).strftime("%Y-%m-%d %H:%M:%S")
-            gcs['updated_at'] = datetime.datetime.fromtimestamp(epoch_updated_at).strftime("%Y-%m-%d %H:%M:%S")
+            gcs['created_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(gcs['created_at'])))
+            gcs['updated_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(gcs['updated_at'])))
             json_gcs.append(gcs)
 
     storage_client = storage.Client()
@@ -64,11 +62,11 @@ load_users = GCSToBigQueryOperator(
     source_objects=['users.csv'],
     destination_project_dataset_table=f"{DATASET_NAME}.{TABLE_NAME}",
     schema_fields=[
-        {'name': 'created_at', 'type': 'DATETIME', 'mode': 'REQUIRED'},
+        {'name': 'created_at', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
         {'name': 'first_name', 'type': 'STRING', 'mode': 'REQUIRED'},
         {'name': 'id', 'type': 'STRING', 'mode': 'REQUIRED'},
         {'name': 'last_name', 'type': 'STRING', 'mode': 'REQUIRED'},
-        {'name': 'updated_at', 'type': 'DATETIME', 'mode': 'REQUIRED'},
+        {'name': 'updated_at', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
     ],
     write_disposition='WRITE_TRUNCATE',
     source_format='CSV',
