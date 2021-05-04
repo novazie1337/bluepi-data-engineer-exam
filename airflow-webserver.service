@@ -1,0 +1,15 @@
+[Unit]
+Description=Airflow webserver daemon
+After=network.target
+[Service]
+Environment="PATH=/srv/airflow/bin"
+Environment="AIRFLOW_HOME=/srv/airflow"
+User=airflow
+Group=airflow
+Type=simple
+ExecStart=/srv/airflow/bin/airflow webserver -p 8080 --pid /srv/airflow/webserver.pid
+Restart=on-failure
+RestartSec=5s
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
