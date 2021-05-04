@@ -1,4 +1,4 @@
-# bluePi Interview Challenge (Data Engineer)
+# BluePi Interview Challenge (Data Engineer)
 
 This repository contains code and documentation for use with
 
