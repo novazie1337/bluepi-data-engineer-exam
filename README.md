@@ -24,4 +24,4 @@ This repository contains code and documentation for use with
 
 ## For more information
 * [Project Requirement](https://github.com/novazie1337/bluepi-data-engineer-exam/blob/master/documents/Data%20Engineer%20Exam%20-%20bluePi.pdf)
-* [Project Document](https://github.com/novazie1337/bluepi-data-engineer-exam/blob/master/documents/Interview%20Challenge%20-%20Document.docx)
+* [Project Document](https://github.com/novazie1337/bluepi-data-engineer-exam/blob/master/documents/Interview%20Challenge%20-%20Document.pdf)
